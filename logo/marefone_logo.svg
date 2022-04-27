@@ -26,7 +26,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="3.1393659"
-     inkscape:cx="557.45906"
+     inkscape:cx="502.35239"
      inkscape:cy="692.60971"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -37,7 +37,13 @@
      inkscape:window-height="1109"
      inkscape:window-x="0"
      inkscape:window-y="60"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1">
+    <sodipodi:guide
+       position="151.36549,209.68672"
+       orientation="1,0"
+       id="guide15"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -54,18 +60,11 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <rect
-       id="rect14"
-       width="45.172569"
-       height="52.323891"
-       x="132.06122"
-       y="92.352783"
-       style="fill:#ffffff;stroke-width:0.22414039"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300" />
     <g
        id="g5079"
-       transform="translate(12.888799,35.482766)">
+       transform="translate(9.3255825,36.780134)"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300">
       <ellipse
          ry="20.512476"
          rx="20.413134"
@@ -85,7 +84,7 @@
        xml:space="preserve"
        id="flowRoot5069"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Ani;-inkscape-font-specification:Ani;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-       transform="matrix(0.26458333,0,0,0.26458333,46.311783,71.735068)"><flowRegion
+       transform="matrix(0.26458333,0,0,0.26458333,46.588112,33.997349)"><flowRegion
          id="flowRegion5071"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ani;-inkscape-font-specification:Ani"><rect
            id="rect5073"
@@ -94,6 +93,6 @@
            x="359.93149"
            y="233.72766"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ani;-inkscape-font-specification:Ani" /></flowRegion><flowPara
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:18.66666603px;font-family:Purisa;-inkscape-font-specification:'Purisa Bold'"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:13.33333397px;font-family:Purisa;-inkscape-font-specification:'Purisa Bold'"
          id="flowPara5097">Marefone</flowPara></flowRoot>  </g>
 </svg>
