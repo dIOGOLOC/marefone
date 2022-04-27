@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.1393659"
-     inkscape:cx="600.14284"
-     inkscape:cy="692.60971"
+     inkscape:zoom="1.569683"
+     inkscape:cx="393.14423"
+     inkscape:cy="752.29301"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -54,9 +54,18 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="fill:none;stroke-width:0.2476739"
+       id="rect42"
+       width="149.00568"
+       height="44.836544"
+       x="41.802494"
+       y="52.59024"
+       inkscape:export-xdpi="50.229874"
+       inkscape:export-ydpi="50.229874" />
     <g
        id="g5079"
-       transform="translate(22.243793,32.195876)"
+       transform="translate(-78.853984,-5.1398216)"
        inkscape:export-xdpi="50"
        inkscape:export-ydpi="50">
       <ellipse
@@ -74,5 +83,33 @@
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="cscscccccsccscsscsccscccccccscccccccccccccscccccccccsccssccccccsscsccccsccscsccsccccccscccccsssccccssscccscccccccccccccsccscsccccccccccccsccccccccccccccccccscccccccccccscsssccsccccsccccccccccccccsssccscssscccccccscscsccccccccccccccccsccccccscccccccccscsssssccssccsccccccccccscscsscccccsscssscccccccccccccccccscccccscsccccccccccccccscccccscsccscccccccccccccccccscsssccccccccccccscccccccccccccccccccccccscccccccccccccscccscccccccscsssscscsccccccccsccccccccccccscccccccsccccccscsccssscscsccccsccccsssccccccccccccccccccccccccccccscccsccsccccccccccccccscsccccccccsccccccsccccccccccccssccccccccsccccccccscscsccccccccccccscccsccccccccccccccccccccccsssccscscscccccccccccccccssscscscccccccccccccsscccccccscccccccscscsscscsccccccccccccccsssccccccccssssscccccccccccsccccccccccccccccccccccccccccccssccccsscccccccccccccsscccsscccccccccsscsscscsccsccscccscsccccccccccccscccssccccccscccccsccssccccccsccsccccccccccccccssccccssccccccccccccccccccssscccccssccccccscccccccccccccccccccccccccsccccssscsccsccccccsccscscscscccscscsccccssscccccccccccccccccscccscsccccccsccccsccsscccccsccccccsscccccccccccccccccccssccccccccscccccccsscccccccscccsccccccccccccsccccccsssccccssscsssccscccsccccccccscsssccccccscccccccccccccccsccccccccscscscccccc" />
     </g>
-  </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot10"
+       style="font-style:normal;font-weight:normal;font-size:26.66666794px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,-57.646992,-30.171964)"><flowRegion
+         id="flowRegion12"
+         style="font-size:26.66666794px"><rect
+           id="rect14"
+           width="402.62909"
+           height="121.99915"
+           x="537.68817"
+           y="355.48581"
+           style="font-size:26.66666794px" /></flowRegion><flowPara
+         id="flowPara16"
+         style="font-size:26.66666794px;text-align:center;text-anchor:middle;fill:#ffffff">Diogo Luiz de Olivera Coelho</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot10-3"
+       style="font-style:normal;font-weight:normal;font-size:26.66666794px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,-57.968646,-18.604265)"><flowRegion
+         id="flowRegion12-6"
+         style="font-size:26.66666794px"><rect
+           id="rect14-7"
+           width="402.62909"
+           height="121.99915"
+           x="537.68817"
+           y="355.48581"
+           style="font-size:26.66666794px" /></flowRegion><flowPara
+         id="flowPara16-5"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.66666794px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic';text-align:center;text-anchor:middle;fill:#0000ff">locdiogo@gmail.com</flowPara></flowRoot>  </g>
 </svg>
