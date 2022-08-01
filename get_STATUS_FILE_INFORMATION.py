@@ -20,7 +20,7 @@ More information in:
 https://glidertools.readthedocs.io/en/latest/loading.html
 
 '''
-
+import numpy as np
 import time
 from tqdm import tqdm
 from multiprocessing import Pool
@@ -55,11 +55,7 @@ else:
 
 
 files_NC = filelist(DIR_STATUS_FILES)
-print(len(files_NC))
-
-
-files_NC = files_NC[:10]
-print(len(files_NC))
+files_NC = files_NC[:300]
 
 def get_glider_data(f):
     '''
@@ -105,81 +101,66 @@ def get_glider_data(f):
     All functions applied to data will also be recorded under the variable attribute processing.    
     '''
 
-    try:
-
-        names = [
+       
+    names = [
             'ctd_depth',
             'ctd_time',
             'ctd_pressure',
             'salinity',
             'temperature'
-                ]
+            ]
+    try: 
 
         ds_dict = gt.load.seaglider_basestation_netCDFs(f, names,verbose=False)
 
-        # Here we drop the time variables imported for the PAR variable
-        # we don't need these anymore. You might have to change this 
-        # depening on the dataset
-        merged = ds_dict['sg_data_point']
-        if 'time' in merged:
-            merged = merged.drop(["time", "time_dt64"])
+        dat = ds_dict['sg_data_point']
 
+        return dat
 
-        # To make it easier and clearer to work with, we rename the 
-        # original variables to something that makes more sense. This
-        # is done with the xarray.Dataset.rename({}) function.
-        # We only use the merged dataset as this contains all the 
-        # imported dimensions. 
-        # NOTE: The renaming has to be specific to the dataset otherwise an error will occur
-        dat = merged.rename({
-            'salinity': 'salt_raw',
-            'temperature': 'temp_raw',
-            'ctd_pressure': 'pressure',
-            'ctd_depth': 'depth',
-            'ctd_time_dt64': 'time',
-            'ctd_time': 'time_raw'
-                            })
-
-        # variable assignment for conveniant access
-        depth = dat.depth
-        dives = dat.dives
-        lats = dat.latitude
-        lons = dat.longitude
-        time = dat.time
-        pres = dat.pressure
-        temp = dat.temp_raw
-        salt = dat.salt_raw
     except:
         pass
 
-    return [lons,lats,depth,time]
 
+        
 print('Getting data:')
 result_lst = []
 pool = Pool(processes=NUM_PROCESS)
 for result in tqdm(pool.imap_unordered(func=get_glider_data, iterable=files_NC), total=len(files_NC)):
-	result_lst.append(result)
+    if result is not None:
+        result_lst.append(result)
 print('\n')
 
 #--------------
 
 lons_lst = []
 lats_lst = []
-depth_lst = []
-time_lst = []
+dpt_lst = []
+tm_lst = []
 
-for i in result_lst:
-    lons_lst.append(i[0])
-    lats_lst.append(i[1])
-    depth_lst.append(i[2])
-    time_lst.append(i[3])
+for dat in result_lst:
 
-print(time_lst[0])
+    depth = dat.ctd_depth.to_numpy().tolist()
+    dives = dat.dives.to_numpy().tolist()
+    lats = dat.latitude.to_numpy().tolist()
+    lons = dat.longitude.to_numpy().tolist()
+    time = dat.ctd_time_dt64.to_numpy().tolist()
+    pres = dat.ctd_pressure.to_numpy().tolist()
+    temp = dat.temperature.to_numpy().tolist()
+    salt = dat.salinity.to_numpy().tolist()
+
+    lons_lst.append(lons)
+    lats_lst.append(lats)
+    dpt_lst.append(depth)
+    tm_lst.append(time)
+
+longitude_lst = [food for sublist in lons_lst for food in sublist]
+latitude_lst = [food for sublist in lats_lst for food in sublist]
+depth_lst = [food for sublist in dpt_lst for food in sublist]
+time_lst = [food for sublist in tm_lst for food in sublist]
+
 
 fig, axs = plt.subplots(1, 1)
-
-# marker symbol
-axs.scatter(lons_lst,lats_lst, c=depth_lst, s=4, marker="o")
+axs.scatter(longitude_lst,latitude_lst, c=depth_lst, s=4, marker="o")
 plt.show()
 
 '''

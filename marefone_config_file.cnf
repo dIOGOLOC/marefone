@@ -28,9 +28,9 @@
 #
 # ------------------------------------------------------------------------------
 
-#======
+#=====
 [lang]
-#======
+#=====
 
 #choose between portuguese (br) or english (en):
 LABEL_LANG = en
@@ -44,28 +44,28 @@ LABEL_LANG = en
 ##
 
 # directory of raw files
-DIR_DATA_FILES = /home/diogoloc/dados_POSDOC/gliders_project/gliders_data/DATA_GLIDER_2022/
+DIR_DATA_FILES = /home/diogoloc/dados_posdoc/gliders_project/gliders_data/DATA_GLIDER_2022/
 
 # directory of raw status files
-DIR_STATUS_FILES = /home/diogoloc/dados_POSDOC/gliders_project/gliders_data/DATA_GLIDER_2022/
+DIR_STATUS_FILES = /home/diogoloc/dados_posdoc/gliders_project/gliders_data/DATA_GLIDER_2022/
 
 #Shapefile  boundary area
-BOUNDARY_STATES_SHP = /home/diogoloc/SIG_DADOS/Projeto_ON_MAR/shapefile/brasil_estados/brasil_estados.shp
+BOUNDARY_STATES_SHP = /home/diogoloc/dados_posdoc/SIG_DADOS/Projeto_ON_MAR/shapefile/brasil_estados/brasil_estados.shp
 
 ##
 # outputs
 ##
 
 #Directory to save Figures
-OUTPUT_FIGURE_DIR = /home/diogoloc/dados_POSDOC/gliders_project/OUTPUT/Figuras/
+OUTPUT_FIGURE_DIR = /home/diogoloc/dados_posdoc/gliders_project/OUTPUT/Figuras/
 
 #Directory to save processed data
-OUTPUT_OUT_DIR = /home/diogoloc/dados_POSDOC/gliders_project/OUTPUT/data/
+OUTPUT_OUT_DIR = /home/diogoloc/dados_posdoc/gliders_project/OUTPUT/data/
 
 
-#=====
+#========
 [process]
-#=====
+#========
 
 #Number worker processes (see https://docs.python.org/3/library/multiprocessing.html)
-NUM_PROCESS = 8
+NUM_PROCESS = 2
