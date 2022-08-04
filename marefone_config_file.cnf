@@ -44,10 +44,10 @@ LABEL_LANG = en
 ##
 
 # directory of raw files
-DIR_DATA_FILES = /home/diogoloc/dados_posdoc/gliders_project/gliders_data/DATA_GLIDER_2022/
+DIR_DATA_FILES = /home/diogoloc/dados_posdoc/gliders_project/gliders_data/HDs_PETRO_NC/
 
 # directory of raw status files
-DIR_STATUS_FILES = /home/diogoloc/dados_posdoc/gliders_project/gliders_data/DATA_GLIDER_2022/
+DIR_STATUS_FILES = /home/diogoloc/dados_posdoc/gliders_project/gliders_data/HDs_PETRO_NC/
 
 #Shapefile  boundary area
 BOUNDARY_STATES_SHP = /home/diogoloc/dados_posdoc/SIG_DADOS/Projeto_ON_MAR/shapefile/brasil_estados/brasil_estados.shp
@@ -68,4 +68,4 @@ OUTPUT_OUT_DIR = /home/diogoloc/dados_posdoc/gliders_project/OUTPUT/data/
 #========
 
 #Number worker processes (see https://docs.python.org/3/library/multiprocessing.html)
-NUM_PROCESS = 2
+NUM_PROCESS = 4

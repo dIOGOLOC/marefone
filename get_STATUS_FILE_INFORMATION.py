@@ -20,6 +20,7 @@ More information in:
 https://glidertools.readthedocs.io/en/latest/loading.html
 
 '''
+import os
 import numpy as np
 import time
 from tqdm import tqdm
@@ -28,12 +29,20 @@ from obspy import read,read_inventory, UTCDateTime, Stream
 from matplotlib.dates import YearLocator, MonthLocator, DayLocator, DateFormatter
 import matplotlib.dates as mdates
 import datetime
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter,FixedLocator, FixedFormatter
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 import glidertools as gt
 
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.io.shapereader import Reader
+import cartopy.io.img_tiles as cimgt
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter,LatitudeLocator,LongitudeLocator
 
+import xarray
+import pandas as pd
 from assessment_py.status_assessment import filelist
 
 from parameters_py.config import (
@@ -53,9 +62,7 @@ else:
     print('Getting Glider status files.')
     print('\n')
 
-
 files_NC = filelist(DIR_STATUS_FILES)
-files_NC = files_NC[:300]
 
 def get_glider_data(f):
     '''
@@ -111,9 +118,9 @@ def get_glider_data(f):
             ]
     try: 
 
-        ds_dict = gt.load.seaglider_basestation_netCDFs(f, names,verbose=False)
+        ds_dict = gt.load.seaglider_basestation_netCDFs(f, names,verbose=False,keep_global_attrs=True)
 
-        dat = ds_dict['sg_data_point']
+        dat = ds_dict['sg_data_point'].to_dataframe()
 
         return dat
 
@@ -130,38 +137,81 @@ for result in tqdm(pool.imap_unordered(func=get_glider_data, iterable=files_NC),
         result_lst.append(result)
 print('\n')
 
-#--------------
 
-lons_lst = []
-lats_lst = []
-dpt_lst = []
-tm_lst = []
+#-------------------------------------------
+datasets = []
+for dat in tqdm(result_lst):
+    datasets.append(dat)
 
-for dat in result_lst:
+combined = pd.concat(datasets)
+combined.sort_values('ctd_time_dt64')
 
-    depth = dat.ctd_depth.to_numpy().tolist()
-    dives = dat.dives.to_numpy().tolist()
-    lats = dat.latitude.to_numpy().tolist()
-    lons = dat.longitude.to_numpy().tolist()
-    time = dat.ctd_time_dt64.to_numpy().tolist()
-    pres = dat.ctd_pressure.to_numpy().tolist()
-    temp = dat.temperature.to_numpy().tolist()
-    salt = dat.salinity.to_numpy().tolist()
+print(combined)
+#-------------------------------------------
 
-    lons_lst.append(lons)
-    lats_lst.append(lats)
-    dpt_lst.append(depth)
-    tm_lst.append(time)
+fig = plt.figure(figsize=(10, 10))
+gs = gridspec.GridSpec(nrows=1, ncols=1)
+#-------------------------------------------
 
-longitude_lst = [food for sublist in lons_lst for food in sublist]
-latitude_lst = [food for sublist in lats_lst for food in sublist]
-depth_lst = [food for sublist in dpt_lst for food in sublist]
-time_lst = [food for sublist in tm_lst for food in sublist]
+crs = ccrs.NearsidePerspective(central_longitude=-40, central_latitude=-20)
+map_loc = fig.add_subplot(gs[0],projection=crs)
+
+LLCRNRLON_LARGE = -52
+URCRNRLON_LARGE = -28
+LLCRNRLAT_LARGE = -30
+URCRNRLAT_LARGE = -12
+
+#map_loc.set_extent([LLCRNRLON_LARGE,URCRNRLON_LARGE,LLCRNRLAT_LARGE,URCRNRLAT_LARGE])
+map_loc.yaxis.set_ticks_position('both')
+map_loc.xaxis.set_ticks_position('both')
 
 
-fig, axs = plt.subplots(1, 1)
-axs.scatter(longitude_lst,latitude_lst, c=depth_lst, s=4, marker="o")
-plt.show()
+map_loc.grid(True,which='major',color='gray',linewidth=1,linestyle='--')
+
+
+# Create a Stamen Terrain instance.
+stamen_terrain = cimgt.Stamen('terrain-background')
+
+# Add the Stamen data at zoom level 8.
+map_loc.add_image(stamen_terrain, 10)
+
+# Create a feature for States/Admin 1 regions at 1:50m from Natural Earth
+states_provinces = cfeature.NaturalEarthFeature(
+												category='cultural',
+												name='admin_1_states_provinces_lines',
+												scale='50m',
+												facecolor='none'
+												)
+
+map_loc.add_feature(cfeature.LAND,)
+map_loc.add_feature(cfeature.COASTLINE)
+map_loc.add_feature(states_provinces, edgecolor='k',linewidth=0.5)
+
+gl = map_loc.gridlines(color='gray',linewidth=0.5,linestyle='--',draw_labels=True)
+
+gl.xlocator = LongitudeLocator(4)
+gl.ylocator = LatitudeLocator(4)
+gl.xformatter = LongitudeFormatter()
+gl.yformatter = LatitudeFormatter()
+
+gl.xlabel_style = {'size': 20, 'color': 'gray'}
+gl.xlabel_style = {'color': 'black', 'weight': 'bold'}
+gl.ylabel_style = {'size': 20, 'color': 'gray'}
+gl.ylabel_style = {'color': 'black', 'weight': 'bold'}
+
+map_loc.tick_params(labelbottom=True,labeltop=True,labelleft=True,labelright=True, labelsize=15)
+
+#geodetic_transform = ccrs.Geodetic()._as_mpl_transform(map_loc)
+#text_transform = offset_copy(geodetic_transform, units='dots', y=17,x=33)
+#text_transform_mag = offset_copy(geodetic_transform, units='dots', y=-25,x=20)
+
+#cb = map_loc.scatter(combined['longitude'], combined['latitude'], marker='o',s=5,c=combined['ctd_depth'],cmap='viridis', transform=ccrs.PlateCarree())
+smap = map_loc.scatter(combined['longitude'], combined['latitude'], marker='o',s=5,c=mdates.date2num(combined['ctd_time_dt64']),cmap='cividis',vmin=mdates.date2num(combined['ctd_time_dt64']).min(),vmax=mdates.date2num(combined['ctd_time_dt64']).max(), transform=ccrs.PlateCarree())
+
+cbar = plt.colorbar(smap,cmap='viridis', orientation='vertical',ticklocation='auto',format=DateFormatter('%b %Y'))
+
+os.makedirs(OUTPUT_FIGURE_DIR,exist_ok=True)
+fig.savefig(OUTPUT_FIGURE_DIR+'GLIDER_MAP_TRAJETORY.png',dpi=300)
 
 '''
 # ==================================
