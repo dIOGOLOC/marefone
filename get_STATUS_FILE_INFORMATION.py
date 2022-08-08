@@ -21,6 +21,7 @@ https://glidertools.readthedocs.io/en/latest/loading.html
 
 '''
 import os
+import glob
 import numpy as np
 import time
 from tqdm import tqdm
@@ -41,12 +42,13 @@ from cartopy.io.shapereader import Reader
 import cartopy.io.img_tiles as cimgt
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter,LatitudeLocator,LongitudeLocator
 
+import pyarrow.feather as feather
 import xarray
 import pandas as pd
-from assessment_py.status_assessment import filelist
+from assessment_py.status_assessment import filelist,READ_PLOT_DATE_file
 
 from parameters_py.config import (
-					OUTPUT_FIGURE_DIR,DIR_STATUS_FILES,NUM_PROCESS,LABEL_LANG
+					OUTPUT_FIGURE_DIR,DIR_STATUS_FILES,NUM_PROCESS,LABEL_LANG,OUTPUT_OUT_DIR
 					)
 
 
@@ -54,17 +56,27 @@ from parameters_py.config import (
 # Retrieving GCF status files
 # ============================
 if LABEL_LANG == 'br':
-    print('Obtendo arquivos de funcionamento do Glider.')
+    print('Obtendo arquivos de funcionamento do Glider e salvando em OUTPUT/FEATHER_FILES:')
     print('\n')
 
 else:
     print('\n')
-    print('Getting Glider status files.')
+    print('Getting Glider status files and saving in OUTPUT/FEATHER_FILES:')
     print('\n')
 
 files_NC = filelist(DIR_STATUS_FILES)
 
 def get_glider_data(f):
+    # splitting subdir/basename
+    subdir, filename = os.path.split(f)
+    name_file = filename.split('.nc')[0]
+
+    
+    name_split = f.split('/')
+    for l in name_split:
+        if 'sg' in l:
+            glider_name = l
+
     '''
     From the variable listing, one can choose multiple variables to load. 
     Note that one only needs the variable name to load the data. 
@@ -112,42 +124,88 @@ def get_glider_data(f):
     names = [
             'ctd_depth',
             'ctd_time',
-            'ctd_pressure',
-            'salinity',
-            'temperature'
+            'latitude',
+            'longitude'
             ]
+
     try: 
 
-        ds_dict = gt.load.seaglider_basestation_netCDFs(f, names,verbose=False,keep_global_attrs=True)
+        #Check if file exists
+        FEATHER_FOLDER = OUTPUT_OUT_DIR+'FEATHER_FILES/'
+        file_feather_name = FEATHER_FOLDER+name_file+'_nc_'+glider_name+'_data.feather'
+        if os.path.isfile(file_feather_name):
+            pass
 
-        dat = ds_dict['sg_data_point'].to_dataframe()
+        else:
 
-        return dat
+            ds_dict = gt.load.seaglider_basestation_netCDFs(f, names,verbose=False,keep_global_attrs=True)
+        
+            # Creating a Pandas DataFrame:
+            dat = ds_dict['sg_data_point'].to_dataframe()
+
+            # ----------------------------------------------------------------------------------------------------
+            # Convert from pandas to Arrow and saving in feather formart file
+            os.makedirs(FEATHER_FOLDER,exist_ok=True)
+            feather.write_feather(dat, file_feather_name)
+            # ----------------------------------------------------------------------------------------------------
+
+            return 0
 
     except:
-        pass
+        pass  
 
-
-        
-print('Getting data:')
-result_lst = []
-pool = Pool(processes=NUM_PROCESS)
-for result in tqdm(pool.imap_unordered(func=get_glider_data, iterable=files_NC), total=len(files_NC)):
-    if result is not None:
-        result_lst.append(result)
+# ---------------------------------------------------------------------------
+'''
+with Pool(NUM_PROCESS) as p:
+    list(tqdm(p.imap(func=get_glider_data, iterable=files_NC), total=len(files_NC)))
 print('\n')
 
+# ---------------------------------------------------------------------------
+if LABEL_LANG == 'br':
+    print('Importantando  de arquivos de funcionamento do Glider(*.feather).')
+    print('\n')
 
+else:
+    print('\n')
+    print('Importing of Glider state of health files (*.feather).')
+    print('\n')
+
+nc_feather_files_lst = sorted(glob.glob(OUTPUT_OUT_DIR+'FEATHER_FILES/*'))
+
+nc_feather_files = [pd.read_feather(i) for i in nc_feather_files_lst]
+
+if LABEL_LANG == 'br':
+    print('Número de arquivos de funcionamento do Glider(*.feather):',len(nc_feather_files))
+    print('\n')
+
+else:
+    print('\n')
+    print('Number of Glider state of health files (*.feather):',len(nc_feather_files))
+    print('\n')
+
+if LABEL_LANG == 'br':
+    print('Concatenando os dataframes(*.feather).')
+    print('\n')
+
+else:
+    print('\n')
+    print('Dataframe concatenating (*.feather).')
+    print('\n')
+
+df = pd.concat(nc_feather_files, ignore_index=True)
+df.sort_values('ctd_time_dt64')
+
+print(df.info)
 #-------------------------------------------
-datasets = []
-for dat in tqdm(result_lst):
-    datasets.append(dat)
 
-combined = pd.concat(datasets)
-combined.sort_values('ctd_time_dt64')
+if LABEL_LANG == 'br':
+    print('Plotando os dados *.feather:')
+    print('\n')
 
-print(combined)
-#-------------------------------------------
+else:
+    print('\n')
+    print('Plotting *.feather data:')
+    print('\n')
 
 fig = plt.figure(figsize=(10, 10))
 gs = gridspec.GridSpec(nrows=1, ncols=1)
@@ -201,56 +259,18 @@ gl.ylabel_style = {'color': 'black', 'weight': 'bold'}
 
 map_loc.tick_params(labelbottom=True,labeltop=True,labelleft=True,labelright=True, labelsize=15)
 
-#geodetic_transform = ccrs.Geodetic()._as_mpl_transform(map_loc)
-#text_transform = offset_copy(geodetic_transform, units='dots', y=17,x=33)
-#text_transform_mag = offset_copy(geodetic_transform, units='dots', y=-25,x=20)
-
-#cb = map_loc.scatter(combined['longitude'], combined['latitude'], marker='o',s=5,c=combined['ctd_depth'],cmap='viridis', transform=ccrs.PlateCarree())
-smap = map_loc.scatter(combined['longitude'], combined['latitude'], marker='o',s=5,c=mdates.date2num(combined['ctd_time_dt64']),cmap='cividis',vmin=mdates.date2num(combined['ctd_time_dt64']).min(),vmax=mdates.date2num(combined['ctd_time_dt64']).max(), transform=ccrs.PlateCarree())
+smap = map_loc.scatter(df['longitude'], df['latitude'], marker='o',s=5,c=mdates.date2num(df['ctd_time_dt64']),cmap='cividis',vmin=mdates.date2num(df['ctd_time_dt64']).min(),vmax=mdates.date2num(df['ctd_time_dt64']).max(), transform=ccrs.PlateCarree())
 
 cbar = plt.colorbar(smap,cmap='viridis', orientation='vertical',ticklocation='auto',format=DateFormatter('%b %Y'))
 
 os.makedirs(OUTPUT_FIGURE_DIR,exist_ok=True)
 fig.savefig(OUTPUT_FIGURE_DIR+'GLIDER_MAP_TRAJETORY.png',dpi=300)
-
 '''
-# ==================================
-# Separating GCF status files by day
-# ==================================
-if LABEL_LANG == 'br':
-    print('Separando os arquivos por dia.')
-    print('\n')
-
-else:
-    print('Separating GCF status files by day.')
-    print('\n')
-
-
-daily_lst_m8 = list_split_day(m8_folder)
-daily_lst_m9 = list_split_day(m9_folder)
-daily_lst_ma = list_split_day(ma_folder)
-daily_lst_me = list_split_day(me_folder)
-
-
-# ================================
-# Multiprocessing GCF status files
-# ================================
-if LABEL_LANG == 'br':
-    print('Multiprocessamento dos arquivos de funcionamento GCF.')
-    print('\n')
-
-else:
-    print('Multiprocessing GCF status files.')
-    print('\n')
-
-start_time = time.time()
 #--------------------------------------------------------------------------------------------------------------------
-if LABEL_LANG == 'br':
-    print('Canal: m8')
 
-else:
-    print('Channel: m8')
-    print('\n')
+a = READ_PLOT_DATE_file(FIG_FOLDER_OUTPUT=OUTPUT_FIGURE_DIR,TXT_FILE='/home/diogoloc/dados_posdoc/gliders_project/gliders_data/file_wav.txt')
+'''
+
 
 result_m8 = []
 pool = Pool(processes=NUM_PROCESS)
