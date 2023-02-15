@@ -70,13 +70,6 @@ def get_glider_data(f):
     # splitting subdir/basename
     subdir, filename = os.path.split(f)
     name_file = filename.split('.nc')[0]
-
-    
-    name_split = f.split('/')
-    for l in name_split:
-        if 'sg' in l:
-            glider_name = l
-
     '''
     From the variable listing, one can choose multiple variables to load. 
     Note that one only needs the variable name to load the data. 
@@ -119,27 +112,29 @@ def get_glider_data(f):
     DataArray with attributes is given. 
     All functions applied to data will also be recorded under the variable attribute processing.    
     '''
-
        
     names = [
             'ctd_depth',
             'ctd_time',
             'latitude',
             'longitude'
+            'time',
+            'detph',
+            'audiolat',
+            'audiolon'
             ]
 
     try: 
 
         #Check if file exists
         FEATHER_FOLDER = OUTPUT_OUT_DIR+'FEATHER_FILES/'
-        file_feather_name = FEATHER_FOLDER+name_file+'_nc_'+glider_name+'_data.feather'
+        file_feather_name = FEATHER_FOLDER+name_file+'_nc_data.feather'
         if os.path.isfile(file_feather_name):
             pass
 
         else:
 
             ds_dict = gt.load.seaglider_basestation_netCDFs(f, names,verbose=False,keep_global_attrs=True)
-        
             # Creating a Pandas DataFrame:
             dat = ds_dict['sg_data_point'].to_dataframe()
 
@@ -155,10 +150,11 @@ def get_glider_data(f):
         pass  
 
 # ---------------------------------------------------------------------------
-'''
+
 with Pool(NUM_PROCESS) as p:
     list(tqdm(p.imap(func=get_glider_data, iterable=files_NC), total=len(files_NC)))
 print('\n')
+
 
 # ---------------------------------------------------------------------------
 if LABEL_LANG == 'br':
@@ -265,11 +261,10 @@ cbar = plt.colorbar(smap,cmap='viridis', orientation='vertical',ticklocation='au
 
 os.makedirs(OUTPUT_FIGURE_DIR,exist_ok=True)
 fig.savefig(OUTPUT_FIGURE_DIR+'GLIDER_MAP_TRAJETORY.png',dpi=300)
-'''
+
 #--------------------------------------------------------------------------------------------------------------------
 
 a = READ_PLOT_DATE_file(FIG_FOLDER_OUTPUT=OUTPUT_FIGURE_DIR,TXT_FILE='/home/diogoloc/dados_posdoc/gliders_project/gliders_data/file_wav.txt')
-'''
 
 
 result_m8 = []
@@ -422,5 +417,4 @@ ax.grid(True)
 # rotates and right aligns the x labels, and moves the bottom of the
 # axes up to make room for them
 fig.autofmt_xdate()
-fig.savefig(OUTPUT_FIGURE_DIR+result_me[0][0]+'_temperature.png', dpi=300, facecolor='w')
-'''
+fig.savefig(OUTPUT_FIGURE_DIR+result_me[0][0]+'_temperature.png', dpi=300, facecolor='w')clear
