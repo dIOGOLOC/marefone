@@ -6,7 +6,6 @@ import glob
 from datetime import datetime,timedelta,date
 from obspy import read,UTCDateTime,Trace
 import numpy as np
-from scipy.io import wavfile
 
 import pandas as pd
 from multiprocessing import Pool, RLock, freeze_support
@@ -24,13 +23,71 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 # Config
 # ======
 
-log_file_folder = '/home/diogoloc/dados_posdoc/gliders_project/gliders_data/LOG_data/'
+mseed_files = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/MSEED/'
 
 FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
 
 # ========
 # Function
 # ========
+
+def dataframe_extraction_from_mseedfile(i):
+        '''
+        i: .mseed file.
+        '''
+                  
+        subdir, filename_mseed = os.path.split(i)
+        filename = filename_mseed.split('.mseed')[0]
+        if 'pa' in filename.split('_')[0]:
+            mergulho = filename.split('_')[0].split('a')[1]
+            stream_number = filename.split('_')[1]
+
+            year_month_day = filename.split('_')[2]
+            hour_minute_second = filename.split('_')[3]
+
+            year = int('20'+year_month_day[:2])
+            month = int(year_month_day[2:4])
+            day = int(year_month_day[4:])
+
+            hour = int(hour_minute_second[:2])
+            minute = int(hour_minute_second[2:4])
+            second = int(hour_minute_second[4:])
+
+            d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
+
+
+        if 'pa' in filename.split('_')[2]:
+
+            mergulho = filename.split('_')[2].split('a')[1]
+            stream_number = filename.split('_')[3]
+
+            year_month_day = filename.split('_')[0]
+            hour_minute_second = filename.split('_')[1]
+
+            year = int('20'+year_month_day[:2])
+            month = int(year_month_day[2:4])
+            day = int(year_month_day[4:])
+
+            hour = int(hour_minute_second[:2])
+            minute = int(hour_minute_second[2:4])
+            second = int(hour_minute_second[4:])
+
+            d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
+        
+        #----------------------------
+        #Starting Dataframe
+
+        starttime = d.datetime
+        hour_day = starttime.hour
+        minute_day = starttime.minute
+   
+        df = pd.DataFrame([[filename],[mergulho],[stream_number],[starttime],[hour_day],[minute_day]], index=['filename', 'mergulho', 'stream_number','starttime','hour_day','minute_day']).T
+        #Ending Dataframe
+        #----------------------------
+        
+        return df
+
+#----------------------------
 
 def check_datetime_in_period(datetime_lst,dataf):
     '''
@@ -57,76 +114,30 @@ def check_datetime_in_period(datetime_lst,dataf):
     return data_x_axis
 #----------------------------
 
-def dm(x):
-    south = False
-    
-    if x<0:
-        south = True
-        x = abs(x)
-        
-    degrees = int(x) // 100
-    minutes = x - 100*degrees
-    
-    x = degrees + minutes/60
-    if south:
-        x = -x
-    return x
-
 # =======
 # Program
 # =======
 
 start_time = time.time()
 
-log_files = sorted(glob.glob(log_file_folder+'*/*.log'))
-
-log_files_lst = sorted(log_files)
+mseed_files_lst = sorted(glob.glob(mseed_files+'*/*/*.mseed'))
 
 # ================================
 # Calculating waveforms parameters
 # ================================
 
-pandas_lst = []
-for file in log_files_lst:
-    glider_dic = {'file_location':[],'id':[],"campanha":[],'mergulho':[],"time_d_UTC":[],"time_d":[],"time_s":[],"time_s_UTC":[],"lat_s":[],"lon_s":[],"lat_d":[],"lon_d":[],"surface_drift_direction_deg_s":[],"surface_drift_speed_knots_s":[],"surface_drift_direction_deg_d":[],"surface_drift_speed_knots_d":[]}
+df_lst = []
 
-    with open(file,'r') as f:
-        for x in f:
-            
-            if '$MISSION,' in x:
-                glider_dic['file_location'].append(file.split('/')[0])
-                glider_dic['campanha'].append(float(x.split('$MISSION,')[1].split('\n')[0]))
+# create and configure the process pool
+with Pool() as pool:
+    # execute tasks
+    for result in tqdm(pool.imap_unordered(dataframe_extraction_from_mseedfile, mseed_files_lst),total=len(mseed_files_lst), desc='MSEED files processing'):
+        df_lst.append(result)
+# process pool is closed automatically
 
-            if '$DIVE,' in x:
-                glider_dic['mergulho'].append(int(x.split('$DIVE,')[1].split('\n')[0]))
-                
-            if '$ID,' in x:
-                glider_dic['id'].append(int(x.split('$ID,')[1].split('\n')[0]))
-    
-            if '$GPS2,' in x:
-                glider_dic['time_d_UTC'].append(UTCDateTime(year=int('20'+x.split('$GPS2,')[1].split(',')[0][4:6]), month=int(x.split('$GPS2,')[1].split(',')[0][2:4]), day=int(x.split('$GPS2,')[1].split(',')[0][0:2]),hour=int(x.split('$GPS2,')[1].split(',')[1][0:2]), minute=int(x.split('$GPS2,')[1].split(',')[1][2:4]), second=int(x.split('$GPS2,')[1].split(',')[1][4:6])).datetime)
-                glider_dic['time_d'].append(mdates.date2num(UTCDateTime(year=int('20'+x.split('$GPS2,')[1].split(',')[0][4:6]), month=int(x.split('$GPS2,')[1].split(',')[0][2:4]), day=int(x.split('$GPS2,')[1].split(',')[0][0:2]),hour=int(x.split('$GPS2,')[1].split(',')[1][0:2]), minute=int(x.split('$GPS2,')[1].split(',')[1][2:4]), second=int(x.split('$GPS2,')[1].split(',')[1][4:6])).datetime))
-                glider_dic['lat_d'].append(dm(float(x.split('$GPS2,')[1].split(',')[2])))
-                glider_dic['lon_d'].append(dm(float(x.split('$GPS2,')[1].split(',')[3])))
-                glider_dic['surface_drift_direction_deg_d'].append(float(x.split('$GPS2,')[1].split(',')[-3]))
-                glider_dic['surface_drift_speed_knots_d'].append(float(x.split('$GPS2,')[1].split(',')[-4]))         
+dataframe_final = pd.concat(df_lst, ignore_index=True)
 
-            if '$GPS,' in x:
-                glider_dic['time_s_UTC'].append(UTCDateTime(year=int('20'+x.split('$GPS,')[1].split(',')[0][4:6]), month=int(x.split('$GPS,')[1].split(',')[0][2:4]), day=int(x.split('$GPS,')[1].split(',')[0][0:2]),hour=int(x.split('$GPS,')[1].split(',')[1][0:2]), minute=int(x.split('$GPS,')[1].split(',')[1][2:4]), second=int(x.split('$GPS,')[1].split(',')[1][4:6])).datetime)
-                glider_dic['time_s'].append(mdates.date2num(UTCDateTime(year=int('20'+x.split('$GPS,')[1].split(',')[0][4:6]), month=int(x.split('$GPS,')[1].split(',')[0][2:4]), day=int(x.split('$GPS,')[1].split(',')[0][0:2]),hour=int(x.split('$GPS,')[1].split(',')[1][0:2]), minute=int(x.split('$GPS,')[1].split(',')[1][2:4]), second=int(x.split('$GPS,')[1].split(',')[1][4:6])).datetime))
-                glider_dic['lat_s'].append(dm(float(x.split('$GPS,')[1].split(',')[2])))
-                glider_dic['lon_s'].append(dm(float(x.split('$GPS,')[1].split(',')[3])))
-                glider_dic['surface_drift_direction_deg_s'].append(float(x.split('$GPS,')[1].split(',')[-3]))
-                glider_dic['surface_drift_speed_knots_s'].append(float(x.split('$GPS,')[1].split(',')[-4]))
-    if glider_dic['time_s'] != []:
-        df = pd.DataFrame.from_dict(glider_dic)
-        pandas_lst.append(df)                
-
-dataframe_final = pd.concat(pandas_lst, ignore_index=True)
-
-dataframe_final['DayMonthYear'] = dataframe_final['time_d_UTC'].dt.strftime("%Y-%m-%d")
-dataframe_final['hour_day'] = [i.hour for i in dataframe_final['time_d_UTC']]
-dataframe_final['minute_day'] = [i.minute for i in dataframe_final['time_d_UTC']]
+dataframe_final['DayMonthYear'] = dataframe_final['starttime'].dt.strftime("%Y-%m-%d")
 
 day_date_lst = sorted(list(set(dataframe_final['DayMonthYear'].values)))
 
@@ -167,7 +178,6 @@ campanha_dic_labels = []
 for i in campanha_dic_str.keys():
     campanha_dic_labels.append(i)
 
-
 # ==========================================================
 # Calculating datetime between INITIAL_DATE and  FINAL_DATE
 # ==========================================================
@@ -201,8 +211,8 @@ im = ax.pcolormesh(datetime_pcolormesh,np.arange(25),data_x_axis,cmap='nipy_spec
 
 for dc,date_camp in enumerate(campanha_dic_dates):
     ax.axvline(x = date_camp, color='k', ls=':',lw=2)
-    ax.text(date_camp, 24.5, campanha_dic_labels[dc], horizontalalignment='center',rotation=45) 
-
+    ax.text(date_camp, 24.5, campanha_dic_labels[dc], horizontalalignment='center',rotation=45)
+    
 ax.set_xlim(datatime_initial,datatime_final)
 ax.yaxis.set_major_locator(MultipleLocator(4))
 ax.yaxis.set_minor_locator(MultipleLocator(1))
@@ -233,7 +243,7 @@ axins = inset_axes(ax,
 cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',ticks=[0,30,60],label='Minutos/hora')
 
 os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
-fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y_%m_%d")+datatime_final.strftime("%Y_%m_%d")+'_log.png',dpi=300)
+fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y_%m_%d")+datatime_final.strftime("%Y_%m_%d")+'_mseed.png',dpi=300)
 
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print('\n')
