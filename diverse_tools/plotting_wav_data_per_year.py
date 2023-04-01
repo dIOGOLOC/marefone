@@ -24,9 +24,9 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 # Config
 # ======
 
-wav_file_txt = '/home/diogoloc/dados_posdoc/gliders_project/gliders_data/file_wav.txt'
+wav_file_txt = '/home/diogoloc/dados_posdoc/Gliders_DATA/file_wav.txt'
 
-FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
+FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/Gliders_DATA/OUTPUT/'
 
 # ========
 # Function
@@ -177,7 +177,6 @@ campanha_dic_str = {
     '07':['23/03/19','01/05/19'],'08':['02/05/19','16/06/19'],'09':['29/06/19','31/07/19'],'10':['02/08/19','28/08/19'],'11':['04/09/19','10/10/19'],
                     }
 
-
 campanha_dic_dates = []
 for i in campanha_dic_str.values():
     campanha_dic_dates.append(UTCDateTime(year=int('20'+i[0].split('/')[2]), month=int(i[0].split('/')[1]), day=int(i[0].split('/')[0])).datetime.date())
@@ -191,10 +190,13 @@ for i in campanha_dic_str.keys():
 # Calculating datetime between INITIAL_DATE and  FINAL_DATE
 # ==========================================================
 
-#datatime_initial = datetime.strptime('2015-06-01', "%Y-%m-%d").date() 
-datatime_initial = datetime.strptime('2019-01-01', "%Y-%m-%d").date() 
+#datatime_initial = datetime.strptime('2018-10-01', "%Y-%m-%d").date() 
 
-datatime_final = datetime.strptime('2019-12-31', "%Y-%m-%d").date() 
+#datatime_final = datetime.strptime('2019-04-30', "%Y-%m-%d").date() 
+
+datatime_initial = datetime.strptime('2017-03-01', "%Y-%m-%d").date() 
+
+datatime_final = datetime.strptime('2017-09-30', "%Y-%m-%d").date() 
 
 datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
 
@@ -206,13 +208,13 @@ xlim_final = mdates.date2num(datatime_final)
 # ==========================
 #x axis parameters
 
-months1 = MonthLocator(interval=1)  # every 1 month
-months = MonthLocator(interval=6)  # every 6 month
+months1 = DayLocator(interval=1)  # every 1 day
+months = MonthLocator(interval=1)  # every 6 month
 monthsFmt = DateFormatter('%b-%y')
-months1Fmt = DateFormatter('%b')
+months1Fmt = DateFormatter('%d')
 
 #Matplotlib parameters
-fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(20,5))
+fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(20,4))
 
 data_x_axis = check_datetime_in_period(datetime_lista,df_to_plot)
 datetime_pcolormesh = np.arange(datatime_initial, datatime_final+timedelta(days=1), timedelta(days=1)).astype(datetime)
@@ -229,17 +231,17 @@ ax.yaxis.set_minor_locator(MultipleLocator(1))
 ax.xaxis.set_major_locator(months)
 ax.xaxis.set_major_formatter(monthsFmt)
 ax.xaxis.set_minor_locator(months1)
-ax.xaxis.set_minor_formatter(months1Fmt)
+#ax.xaxis.set_minor_formatter(months1Fmt)
 ax.tick_params(which='minor', length=2)
 ax.tick_params(which='major', length=20)
 ax.set_ylim(0,24)
-ax.set_aspect(20.0)
+ax.set_aspect(1)
 ax.set_ylabel('Hora do Dia',fontsize=15)
 ax.grid(visible=True, which='major', color='k', linestyle='-')
 ax.grid(visible=True, which='minor', color='k', linestyle='-')
 
 plt.setp(ax.xaxis.get_majorticklabels(), fontsize=20)
-plt.setp(ax.xaxis.get_minorticklabels(), fontsize=10,rotation=30)
+#plt.setp(ax.xaxis.get_minorticklabels(), fontsize=10,rotation=30)
 
 #criando a localização da barra de cores:
 axins = inset_axes(ax,
