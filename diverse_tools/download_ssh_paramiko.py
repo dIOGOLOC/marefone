@@ -20,54 +20,101 @@ from paramiko import SSHClient,AutoAddPolicy,Transport,SFTPClient
 # Config
 # ======
 
-host = '....'
+host = 'rsis1.on.br'
 
 port = 22
 
-username = '....'
+username = '...'
 
-password= '....'
+password= '...'
 
-wav_file_txt = '/home/diogoloc/dados_posdoc/Gliders_DATA/file_wav.txt'
+wav_file_txt = '/home/diogoloc/dados_posdoc/gliders_project/gliders_data/file_wav.txt'
 
 main_directory_hds = '/mnt/medata02/HDs_01.04.22/'
 
-FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/Gliders_DATA/OUTPUT/'
+FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
+
+TMP_FOLDER = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/tmp/'
+
+NB_process = 4
 
 # ========
 # Function
 # ========
 
 def download_downsampling_function(file_wav, sampling_rate=100,host=host,port=port,username=username,password=password):
-        """
-        Download wav file via SSH and decimate the trace to achieve the desired sampling rate, sr.
+    """
+    Download wav file via SSH and decimate the trace to achieve the desired sampling rate, sr.
 
-        NOTE: data will be detrended and a cosine taper applied before
-        decimation, in order to avoid edge effects when applying the lowpass
-        filter before decimating.
+    NOTE:data will be detrended and a cosine taper applied before
+         decimation, in order to avoid edge effects when applying the lowpass
+         filter before decimating.
 
-        source: https://quakemigrate.readthedocs.io/en/latest/_modules/quakemigrate/util.html#decimate
+    SOURCE: https://quakemigrate.readthedocs.io/en/latest/_modules/quakemigrate/util.html#decimate
 
-        Parameters:
-        -----------
-        file_wav : .WAV file path
-            Stream to be decimated.
-        sampling_rate : int
-            Output sampling rate.
+    Parameters:
+    -----------
+    file_wav : .WAV file path
+        Stream to be decimated.
+    sampling_rate : int
+        Output sampling rate.
 
-        Returns:
-        --------
-        trace : `obspy.Trace.stats` object
-            Decimated trace.
+    Returns:
+    --------
+    trace : `obspy.Trace.stats` object
+        Decimated trace.
+    """
+    #----------------------------
+    #Collecting wav data
 
-        """
-    #try:
+    subdir = file_wav.split('/')[4:-1]
+    filename = file_wav.split('/')[-1].split("'")[0]
 
-        #----------------------------
-        #Collecting wav data
-        subdir = '/'.join(file_wav.split('/')[4:-1])+'/'
-        filename = file_wav.split('/')[-1].split("'")[0]
+    # Retrieving header informations
+    if 'pa' in filename.split('_')[0]:
+        mergulho = filename.split('_')[0].split('a')[1]
+        stream_number = filename.split('_')[1]
 
+        year_month_day = filename.split('_')[2]
+        hour_minute_second = filename.split('_')[3].split('.')[0]
+
+        year = int('20'+year_month_day[:2])
+        month = int(year_month_day[2:4])
+        day = int(year_month_day[4:])
+
+        hour = int(hour_minute_second[:2])
+        minute = int(hour_minute_second[2:4])
+        second = int(hour_minute_second[4:])
+
+        d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
+
+
+    if 'pa' in filename.split('_')[2]:
+
+        mergulho = filename.split('_')[2].split('a')[1]
+        stream_number = filename.split('_')[3]
+
+        year_month_day = filename.split('_')[0]
+        hour_minute_second = filename.split('_')[1].split('.')[0]
+
+        year = int('20'+year_month_day[:2])
+        month = int(year_month_day[2:4])
+        day = int(year_month_day[4:])
+
+        hour = int(hour_minute_second[:2])
+        minute = int(hour_minute_second[2:4])
+        second = int(hour_minute_second[4:])
+
+        d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
+
+    #Check if the file exists:
+    OUTPUT_TRACE = FOLDER_OUTPUT+'/MSEED/'+d.strftime("%Y")+'/'+d.strftime("%Y-%m-%d")+'/'
+
+    if os.path.exists(OUTPUT_TRACE+filename.split('.')[0]+'.mseed') == False:
+        
+        os.makedirs(OUTPUT_TRACE,exist_ok=True)
+        os.makedirs(TMP_FOLDER,exist_ok=True)
+        
         # Connecting via SSH
         client = SSHClient()
         client.set_missing_host_key_policy(AutoAddPolicy())
@@ -76,51 +123,15 @@ def download_downsampling_function(file_wav, sampling_rate=100,host=host,port=po
         # read the file using SFTP
         sftp = client.open_sftp()
         sftp.chdir(path=main_directory_hds)
-        sftp.chdir(path=subdir)
-        sftp.get(remotepath=filename,localpath='/home/diogoloc/dados_posdoc/Gliders_DATA/DATA_DOWNLOAD_GLIDER/tmp/'+filename)
+        for i in subdir:
+            sftp.chdir(path=i)
+        sftp.get(remotepath=filename,localpath=TMP_FOLDER+filename)
            
         # close the connections
         sftp.close()
         client.close()
 
-        # Retrieving header informations
-        if 'pa' in filename.split('_')[0]:
-            mergulho = filename.split('_')[0].split('a')[1]
-            stream_number = filename.split('_')[1]
-
-            year_month_day = filename.split('_')[2]
-            hour_minute_second = filename.split('_')[3]
-
-            year = int('20'+year_month_day[:2])
-            month = int(year_month_day[2:4])
-            day = int(year_month_day[4:])
-
-            hour = int(hour_minute_second[:2])
-            minute = int(hour_minute_second[2:4])
-            second = int(hour_minute_second[4:])
-
-            d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
-
-
-        if 'pa' in filename.split('_')[2]:
-
-            mergulho = filename.split('_')[2].split('a')[1]
-            stream_number = filename.split('_')[3]
-
-            year_month_day = filename.split('_')[0]
-            hour_minute_second = filename.split('_')[1]
-
-            year = int('20'+year_month_day[:2])
-            month = int(year_month_day[2:4])
-            day = int(year_month_day[4:])
-
-            hour = int(hour_minute_second[:2])
-            minute = int(hour_minute_second[2:4])
-            second = int(hour_minute_second[4:])
-
-            d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
-
-        sampleratetr, datatr = wavfile.read('/home/diogoloc/dados_posdoc/Gliders_DATA/DATA_DOWNLOAD_GLIDER/tmp/'+filename)
+        sampleratetr, datatr = wavfile.read(TMP_FOLDER+filename)
 
         tr = Trace(data=datatr)
         tr.stats.sampling_rate = sampleratetr
@@ -142,16 +153,10 @@ def download_downsampling_function(file_wav, sampling_rate=100,host=host,port=po
         trace.decimate(factor=int(trace.stats.sampling_rate / sampling_rate), strict_length=False, no_filter=True)
 
         # Delete .wav file:
-        os.remove('/home/diogoloc/dados_posdoc/Gliders_DATA/DATA_DOWNLOAD_GLIDER/tmp/'+filename)
+        os.remove(TMP_FOLDER+filename)
 
-        OUTPUT_TRACE = FOLDER_OUTPUT+'/MSEED/'+d.strftime("%Y")+'/'+d.strftime("%Y-%m-%d")+'/'
-        os.makedirs(OUTPUT_TRACE,exist_ok=True)
+        #Saving MSEED file
         trace.write(OUTPUT_TRACE+filename.split('.')[0]+'.mseed', format='MSEED')
-
-        return trace.stats.sampling_rate
-       
-    #except:
-        #pass
 
 #----------------------------
 
@@ -176,12 +181,11 @@ files_datetime_input = sorted(wav_files_lst)
 # =========================
 sr_lst = []
 # create and configure the process pool
-with Pool(processes=6) as pool:
+with Pool(processes=NB_process) as pool:
     # execute tasks
     for result in tqdm(pool.imap_unordered(download_downsampling_function, files_datetime_input),total=len(files_datetime_input), desc='Converting WAV --> MSEED'):
         sr_lst.append(result)
 # process pool is closed automatically
-
 
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print(str(len(files_datetime_input))+' waveforms processed!')
