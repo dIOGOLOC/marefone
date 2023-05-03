@@ -25,9 +25,9 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 mseed_files = '/run/media/dIOGOLOC/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/MSEED/'
 
-FOLDER_OUTPUT = '/run/media/dIOGOLOC/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
+FOLDER_OUTPUT = '/home/dIOGOLOC/dados_posdoc/gliders_project/OUTPUT/'
 
-YEAR = 2015
+YEAR = 2019
 
 # ==========================================================
 # Calculating datetime between INITIAL_DATE and  FINAL_DATE
@@ -144,7 +144,7 @@ mseed_files_lst = sorted(glob.glob(mseed_files+'*/*/*.mseed'))
 df_lst = []
 
 # create and configure the process pool
-with Pool() as pool:
+with Pool(processes=6) as pool:
     # execute tasks
     for result in tqdm(pool.imap_unordered(dataframe_extraction_from_mseedfile, mseed_files_lst),total=len(mseed_files_lst), desc='MSEED files processing'):
         df_lst.append(result)
@@ -185,26 +185,33 @@ campanha_dic_str = {
                     }
 
 campanha_dic_dates = []
-for i in campanha_dic_str.values():
-    campanha_dic_dates.append(UTCDateTime(year=int('20'+i[0].split('/')[2]), month=int(i[0].split('/')[1]), day=int(i[0].split('/')[0])).datetime.date())
+campanha_dic_dates_id = []
+for id_camp,i in enumerate(campanha_dic_str.values()):
+    date_campanha = UTCDateTime(year=int('20'+i[0].split('/')[2]), month=int(i[0].split('/')[1]), day=int(i[0].split('/')[0])).datetime.date()
+    datai = [date_campanha for c in datetime_lista if i == c]
+    if len(datai) == 1:
+        campanha_dic_dates.append(datai[0])
+        campanha_dic_dates_id.append(id_camp)
+    else:
+        pass
 
 
 campanha_dic_labels = []
-for i in campanha_dic_str.keys():
-    campanha_dic_labels.append(i)
+for id_label,i in enumerate(campanha_dic_str.keys()):
+    if id_label in campanha_dic_dates_id:
+        campanha_dic_labels.append(i)
 
 # ==========================
 # Plotting DATA availability
 # ==========================
 #x axis parameters
 
-months1 = MonthLocator(interval=1)  # every 1 month
-months = MonthLocator(interval=6)  # every 6 month
+days = DayLocator(interval=1)  # every 1 day
+months = MonthLocator(interval=1)  # every 1 month
 monthsFmt = DateFormatter('%b-%y')
-months1Fmt = DateFormatter('%b')
 
 #Matplotlib parameters
-fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(20,5))
+fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(16,4))
 
 data_x_axis = check_datetime_in_period(datetime_lista,df_to_plot)
 datetime_pcolormesh = np.arange(datatime_initial, datatime_final+timedelta(days=1), timedelta(days=1)).astype(datetime)
@@ -212,7 +219,7 @@ datetime_pcolormesh = np.arange(datatime_initial, datatime_final+timedelta(days=
 im = ax.pcolormesh(datetime_pcolormesh,np.arange(25),data_x_axis,cmap='nipy_spectral_r', vmin=0, vmax=60,shading='flat',ec='none')
 
 for dc,date_camp in enumerate(campanha_dic_dates):
-    ax.axvline(x = date_camp, color='k', ls=':',lw=2)
+    ax.axvline(x = date_camp, color='k', ls='--',lw=2)
     ax.text(date_camp, 24.5, campanha_dic_labels[dc], horizontalalignment='center',rotation=45)
     
 ax.set_xlim(datatime_initial,datatime_final)
@@ -220,18 +227,17 @@ ax.yaxis.set_major_locator(MultipleLocator(4))
 ax.yaxis.set_minor_locator(MultipleLocator(1))
 ax.xaxis.set_major_locator(months)
 ax.xaxis.set_major_formatter(monthsFmt)
-ax.xaxis.set_minor_locator(months1)
-ax.xaxis.set_minor_formatter(months1Fmt)
+ax.xaxis.set_minor_locator(days)
+#ax.xaxis.set_minor_formatter(dayFmt)
 ax.tick_params(which='minor', length=2)
-ax.tick_params(which='major', length=20)
+ax.tick_params(which='major', length=10)
 ax.set_ylim(0,24)
-ax.set_aspect(20.0)
+ax.set_aspect(2)
 ax.set_ylabel('Hora do Dia',fontsize=15)
 ax.grid(visible=True, which='major', color='k', linestyle='-')
 ax.grid(visible=True, which='minor', color='k', linestyle='-')
 
-plt.setp(ax.xaxis.get_majorticklabels(), fontsize=20)
-plt.setp(ax.xaxis.get_minorticklabels(), fontsize=10,rotation=30)
+plt.setp(ax.xaxis.get_majorticklabels(), fontsize=12,rotation=30)
 
 #criando a localização da barra de cores:
 axins = inset_axes(ax,
@@ -243,9 +249,8 @@ axins = inset_axes(ax,
                     borderpad=0,
                     )
 cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',ticks=[0,30,60],label='Minutos/hora')
-plt.show()
-#os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
-#fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'_mseed.png',dpi=300)
+os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
+fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'_mseed.png',dpi=300)
 
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print('\n')
