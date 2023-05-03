@@ -6,7 +6,6 @@ import glob
 from datetime import datetime,timedelta,date
 from obspy import read,UTCDateTime,Trace
 import numpy as np
-from scipy.io import wavfile
 
 import pandas as pd
 from multiprocessing import Pool, RLock, freeze_support
@@ -24,21 +23,34 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 # Config
 # ======
 
-wav_file_txt = '/home/diogoloc/dados_posdoc/Gliders_DATA/file_wav.txt'
+mseed_files = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/MSEED/'
 
-FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/Gliders_DATA/OUTPUT/'
+FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
+
+# ==========================================================
+# Calculating datetime between INITIAL_DATE and  FINAL_DATE
+# ==========================================================
+
+datatime_initial = datetime.strptime('2015-01-01', "%Y-%m-%d").date() 
+
+datatime_final = datetime.strptime('2015-12-31', "%Y-%m-%d").date() 
+
+datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
+
+xlim_initial = mdates.date2num(datatime_initial)
+xlim_final = mdates.date2num(datatime_final)
 
 # ========
 # Function
 # ========
 
-def dataframe_extraction_from_wavfile(i):
+def dataframe_extraction_from_mseedfile(i):
         '''
-        i: .wav file file.
+        i: .mseed file.
         '''
                   
-        subdir, filename_wav = os.path.split(i)
-        filename = filename_wav.split('.wav')[0]
+        subdir, filename_mseed = os.path.split(i)
+        filename = filename_mseed.split('.mseed')[0]
         if 'pa' in filename.split('_')[0]:
             mergulho = filename.split('_')[0].split('a')[1]
             stream_number = filename.split('_')[1]
@@ -121,14 +133,7 @@ def check_datetime_in_period(datetime_lst,dataf):
 
 start_time = time.time()
 
-wav_files = sorted(np.genfromtxt(wav_file_txt,delimiter=',',dtype='str'))
-
-wav_files_filtered = []
-for i in wav_files:
-    if not any(ext in i for ext in ['defeito','BIN','AMAR','snipets']):
-        wav_files_filtered.append(i)
-
-wav_files_lst = sorted(wav_files_filtered)
+mseed_files_lst = sorted(glob.glob(mseed_files+'*/*/*.mseed'))
 
 # ================================
 # Calculating waveforms parameters
@@ -139,7 +144,7 @@ df_lst = []
 # create and configure the process pool
 with Pool() as pool:
     # execute tasks
-    for result in tqdm(pool.imap_unordered(dataframe_extraction_from_wavfile, wav_files_lst),total=len(wav_files_lst), desc='WAV files processing'):
+    for result in tqdm(pool.imap_unordered(dataframe_extraction_from_mseedfile, mseed_files_lst),total=len(mseed_files_lst), desc='MSEED files processing'):
         df_lst.append(result)
 # process pool is closed automatically
 
@@ -186,35 +191,18 @@ campanha_dic_labels = []
 for i in campanha_dic_str.keys():
     campanha_dic_labels.append(i)
 
-# ==========================================================
-# Calculating datetime between INITIAL_DATE and  FINAL_DATE
-# ==========================================================
-
-#datatime_initial = datetime.strptime('2018-10-01', "%Y-%m-%d").date() 
-
-#datatime_final = datetime.strptime('2019-04-30', "%Y-%m-%d").date() 
-
-datatime_initial = datetime.strptime('2017-03-01', "%Y-%m-%d").date() 
-
-datatime_final = datetime.strptime('2017-09-30', "%Y-%m-%d").date() 
-
-datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
-
-xlim_initial = mdates.date2num(datatime_initial)
-xlim_final = mdates.date2num(datatime_final)
-
 # ==========================
 # Plotting DATA availability
 # ==========================
 #x axis parameters
 
-months1 = DayLocator(interval=1)  # every 1 day
-months = MonthLocator(interval=1)  # every 6 month
+months1 = MonthLocator(interval=1)  # every 1 month
+months = MonthLocator(interval=6)  # every 6 month
 monthsFmt = DateFormatter('%b-%y')
-months1Fmt = DateFormatter('%d')
+months1Fmt = DateFormatter('%b')
 
 #Matplotlib parameters
-fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(20,4))
+fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(20,5))
 
 data_x_axis = check_datetime_in_period(datetime_lista,df_to_plot)
 datetime_pcolormesh = np.arange(datatime_initial, datatime_final+timedelta(days=1), timedelta(days=1)).astype(datetime)
@@ -231,17 +219,17 @@ ax.yaxis.set_minor_locator(MultipleLocator(1))
 ax.xaxis.set_major_locator(months)
 ax.xaxis.set_major_formatter(monthsFmt)
 ax.xaxis.set_minor_locator(months1)
-#ax.xaxis.set_minor_formatter(months1Fmt)
+ax.xaxis.set_minor_formatter(months1Fmt)
 ax.tick_params(which='minor', length=2)
 ax.tick_params(which='major', length=20)
 ax.set_ylim(0,24)
-ax.set_aspect(1)
+ax.set_aspect(20.0)
 ax.set_ylabel('Hora do Dia',fontsize=15)
 ax.grid(visible=True, which='major', color='k', linestyle='-')
 ax.grid(visible=True, which='minor', color='k', linestyle='-')
 
 plt.setp(ax.xaxis.get_majorticklabels(), fontsize=20)
-#plt.setp(ax.xaxis.get_minorticklabels(), fontsize=10,rotation=30)
+plt.setp(ax.xaxis.get_minorticklabels(), fontsize=10,rotation=30)
 
 #criando a localização da barra de cores:
 axins = inset_axes(ax,
@@ -255,7 +243,7 @@ axins = inset_axes(ax,
 cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',ticks=[0,30,60],label='Minutos/hora')
 
 os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
-fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y_%m_%d")+datatime_final.strftime("%Y_%m_%d")+'_wav.png',dpi=300)
+fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y_%m_%d")+datatime_final.strftime("%Y_%m_%d")+'_mseed.png',dpi=300)
 
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print('\n')

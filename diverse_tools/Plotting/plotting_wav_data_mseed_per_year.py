@@ -23,9 +23,24 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 # Config
 # ======
 
-mseed_files = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/MSEED/'
+mseed_files = '/run/media/dIOGOLOC/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/MSEED/'
 
-FOLDER_OUTPUT = '/home/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
+FOLDER_OUTPUT = '/run/media/dIOGOLOC/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
+
+YEAR = 2015
+
+# ==========================================================
+# Calculating datetime between INITIAL_DATE and  FINAL_DATE
+# ==========================================================
+
+datatime_initial = datetime.strptime(str(YEAR)+'-01-01', "%Y-%m-%d").date() 
+
+datatime_final = datetime.strptime(str(YEAR)+'-12-31', "%Y-%m-%d").date() 
+
+datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
+
+xlim_initial = mdates.date2num(datatime_initial)
+xlim_final = mdates.date2num(datatime_final)
 
 # ========
 # Function
@@ -178,19 +193,6 @@ campanha_dic_labels = []
 for i in campanha_dic_str.keys():
     campanha_dic_labels.append(i)
 
-# ==========================================================
-# Calculating datetime between INITIAL_DATE and  FINAL_DATE
-# ==========================================================
-
-datatime_initial = datetime.strptime('2015-06-01', "%Y-%m-%d").date() 
-
-datatime_final = datetime.strptime('2019-12-31', "%Y-%m-%d").date() 
-
-datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
-
-xlim_initial = mdates.date2num(datatime_initial)
-xlim_final = mdates.date2num(datatime_final)
-
 # ==========================
 # Plotting DATA availability
 # ==========================
@@ -241,9 +243,9 @@ axins = inset_axes(ax,
                     borderpad=0,
                     )
 cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',ticks=[0,30,60],label='Minutos/hora')
-
-os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
-fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y_%m_%d")+datatime_final.strftime("%Y_%m_%d")+'_mseed.png',dpi=300)
+plt.show()
+#os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
+#fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'_mseed.png',dpi=300)
 
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print('\n')

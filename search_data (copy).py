@@ -260,4 +260,3 @@ def plot_date_file(FIG_FOLDER_OUTPUT,directory_data,XML_FILE):
 
         os.makedirs(FIG_FOLDER_OUTPUT,exist_ok=True)
         fig.savefig(FIG_FOLDER_OUTPUT+j+'_'+'COMPLETENESS_'+str(obspy.UTCDateTime(INITIAL_DATE).year)+'_'+str(obspy.UTCDateTime(INITIAL_DATE).month)+'_'+str(obspy.UTCDateTime(INITIAL_DATE).day)+'_'+str(obspy.UTCDateTime(FINAL_DATE).year)+'_'+str(obspy.UTCDateTime(FINAL_DATE).month)+'_'+str(obspy.UTCDateTime(FINAL_DATE).day)+'.pdf',dpi=500)
-        #plt.show()
