@@ -187,7 +187,7 @@ ax.set_yticks(np.arange(data_x_axis.shape[0]) + 0.5, datetime_lista_years)
 
 ax.tick_params(which='minor', length=2)
 ax.tick_params(which='major', length=10)
-ax.set_aspect(0.5)
+ax.set_aspect(2)
 
 plt.setp(ax.xaxis.get_majorticklabels(), fontsize=12,rotation=30)
 
@@ -201,8 +201,7 @@ axins = inset_axes(ax,
                     borderpad=0,
                     )
 cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',label='Files/Mês')
-#os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
-#fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'_mseed.png',dpi=300)
-plt.show()
+os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
+fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'-'+datatime_final.strftime("%Y")+'compact_mseed.png',dpi=300)
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print('\n')
