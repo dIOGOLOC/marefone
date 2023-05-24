@@ -248,7 +248,7 @@ axins = inset_axes(ax,
                     bbox_transform=ax.transAxes,
                     borderpad=0,
                     )
-cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',ticks=[0,30,60],label='Minutos/hora')
+cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',ticks=[0,30,60],label='Arquivos/hora')
 os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
 fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'_mseed.png',dpi=300)
 
