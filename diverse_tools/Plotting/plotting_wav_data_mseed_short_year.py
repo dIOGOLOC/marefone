@@ -33,7 +33,7 @@ FOLDER_OUTPUT = '/home/dIOGOLOC/dados_posdoc/gliders_project/OUTPUT/'
 
 datatime_initial = datetime.strptime('2015-01-01', "%Y-%m-%d").date() 
 
-datatime_final = datetime.strptime('2019-12-31', "%Y-%m-%d").date() 
+datatime_final = datetime.strptime('2021-12-31', "%Y-%m-%d").date() 
 
 datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
 
