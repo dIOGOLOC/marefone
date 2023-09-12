@@ -33,7 +33,7 @@ FOLDER_OUTPUT = '/home/dIOGOLOC/dados_posdoc/gliders_project/OUTPUT/'
 
 datatime_initial = datetime.strptime('2015-01-01', "%Y-%m-%d").date() 
 
-datatime_final = datetime.strptime('2021-12-31', "%Y-%m-%d").date() 
+datatime_final = datetime.strptime('2022-12-31', "%Y-%m-%d").date() 
 
 datetime_lista = np.arange(datatime_initial, datatime_final, timedelta(days=1)).astype(datetime)
 
@@ -206,6 +206,6 @@ axins = inset_axes(ax,
                     )
 cbar = fig.colorbar(im, cax=axins, orientation="horizontal", ticklocation='top',label='Arquivos/Mês')
 os.makedirs(FOLDER_OUTPUT+'/FIGURAS/',exist_ok=True)
-fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'-'+datatime_final.strftime("%Y")+'compact_mseed.png',dpi=300)
+fig.savefig(FOLDER_OUTPUT+'/FIGURAS/'+'COMPLETENESS_'+datatime_initial.strftime("%Y")+'_'+datatime_final.strftime("%Y")+'_compact_mseed.png',dpi=300)
 print("--- %.2f execution time (min) ---" % ((time.time() - start_time)/60))
 print('\n')
