@@ -18,7 +18,7 @@ import time
 # Config
 # ======
 
-FOLDER_INPUT = '/run/media/dIOGOLOC/Seagate Expansion Drive/Projeto_Glider/'
+FOLDER_INPUT = '/run/media/dIOGOLOC/FA02_ABR_2021/'
 
 FOLDER_OUTPUT = '/run/media/dIOGOLOC/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
 
@@ -54,49 +54,17 @@ def downsampling_function(file_wav, sampling_rate=100):
             Decimated trace.
         """
         #----------------------------
-        #Collecting wav data
+        #Collecting wav data (AMAR038.1.20191229T000001Z.wav)
 
-        filename = file_wav.split('/')[-1].split("'")[0]
+        filename = file_wav.split('/')[-1].split('.wav')[0]
 
         # Retrieving header informations
-        if 'pa' in filename.split('_')[0]:
-            mergulho = filename.split('_')[0].split('a')[1]
-            stream_number = filename.split('_')[1]
+        sensor_name = filename.split('.')[0]
 
-            year_month_day = filename.split('_')[2]
-            hour_minute_second = filename.split('_')[3].split('.')[0]
-
-            year = int('20'+year_month_day[:2])
-            month = int(year_month_day[2:4])
-            day = int(year_month_day[4:])
-
-            hour = int(hour_minute_second[:2])
-            minute = int(hour_minute_second[2:4])
-            second = int(hour_minute_second[4:])
-
-            d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
-
-
-        if 'pa' in filename.split('_')[2]:
-
-            mergulho = filename.split('_')[2].split('a')[1]
-            stream_number = filename.split('_')[3]
-
-            year_month_day = filename.split('_')[0]
-            hour_minute_second = filename.split('_')[1].split('.')[0]
-
-            year = int('20'+year_month_day[:2])
-            month = int(year_month_day[2:4])
-            day = int(year_month_day[4:])
-
-            hour = int(hour_minute_second[:2])
-            minute = int(hour_minute_second[2:4])
-            second = int(hour_minute_second[4:])
-
-            d = UTCDateTime(datetime(year,month,day,hour,minute,second).isoformat())
+        d = UTCDateTime(filename.split('.')[-1])
 
         #Check if the file exists:
-        OUTPUT_TRACE = FOLDER_OUTPUT+'/MSEED/'+d.strftime("%Y")+'/'+d.strftime("%Y-%m-%d")+'/'
+        OUTPUT_TRACE = FOLDER_OUTPUT+'/MSEED_LFI/'+d.strftime("%Y")+'/'+d.strftime("%Y-%m-%d")+'/'
 
         if os.path.exists(OUTPUT_TRACE+filename.split('.')[0]+'.mseed') == False:
             
@@ -119,7 +87,7 @@ def downsampling_function(file_wav, sampling_rate=100):
             trace.decimate(factor=int(trace.stats.sampling_rate / sampling_rate), strict_length=False, no_filter=True)
 
             #Saving MSEED file
-            trace.write(OUTPUT_TRACE+filename.split('.')[0]+'.mseed', format='MSEED')
+            trace.write(OUTPUT_TRACE+filename+'.mseed', format='MSEED')
     except:
         print('Problem: '+file_wav)
 
@@ -140,7 +108,7 @@ for root, dirs, files in os.walk(FOLDER_INPUT):
 
 wav_files_filtered = []
 for i in wav_files:
-    if not any(ext in i for ext in ['teste','defeito','BIN','AMAR','snipets','sem_ruido']):
+    if not any(ext in i for ext in ['teste','defeito','BIN','snipets','sem_ruido',]):
         wav_files_filtered.append(i)
 
 files_datetime_input = sorted(wav_files_filtered)
