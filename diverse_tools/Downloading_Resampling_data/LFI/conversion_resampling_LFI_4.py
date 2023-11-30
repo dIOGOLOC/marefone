@@ -18,11 +18,11 @@ import time
 # Config
 # ======
 
-FOLDER_INPUT = '/media/sysop/FA06_DOCS_QC_CAMPANHA10/'
+FOLDER_INPUT = '/media/sysop/FA05_CAMPANHA10/'
 
 FOLDER_OUTPUT = '/media/sysop/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
 
-NB_process = 4
+NB_process = 2
 
 # ========
 # Function
