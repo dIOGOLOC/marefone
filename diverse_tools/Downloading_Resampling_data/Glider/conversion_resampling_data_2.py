@@ -18,7 +18,7 @@ import time
 # Config
 # ======
 
-FOLDER_INPUT = '/media/sysop/Fundeios e FA03 e F05/'
+FOLDER_INPUT = '/media/sysop/Fundeios FA04 e FA06/'
 
 FOLDER_OUTPUT = '/media/sysop/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
 
@@ -30,7 +30,7 @@ NB_process = 2
 
 def downsampling_function(file_wav, sampling_rate=100):
 
-    #try: 
+    try: 
 
         """
         Download wav file via SSH and decimate the trace to achieve the desired sampling rate, sr.
@@ -120,8 +120,8 @@ def downsampling_function(file_wav, sampling_rate=100):
 
             #Saving MSEED file
             trace.write(OUTPUT_TRACE+filename.split('.')[0]+'.mseed', format='MSEED')
-    #except:
-    #    print('Problem: '+file_wav)
+    except:
+        print('Problem: '+file_wav)
 
 #----------------------------
 

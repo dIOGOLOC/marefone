@@ -18,7 +18,7 @@ import time
 # Config
 # ======
 
-FOLDER_INPUT = '/media/sysop/FA02_FA04_CAMPANHA10/'
+FOLDER_INPUT = '/media/sysop/Fundeios e FA03 e F05/'
 
 FOLDER_OUTPUT = '/media/sysop/8d2362fc-3b46-49a7-a864-19b2a6ad097b/diogoloc/dados_posdoc/gliders_project/OUTPUT/'
 
