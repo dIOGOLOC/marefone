@@ -92,7 +92,7 @@ def rename_files_LFI(row):
         
         #<SDSdir>/Year/NET/STA/CHAN.TYPE/NET.STA.LOC.CHAN.TYPE.YEAR.DAY
         #Saving in SDS structure        
-        OUTPUT_STREAM = FOLDER_OUTPUT+'MSEED_LFI_SDS_1/'+st[0].stats.starttime.strftime("%Y")+'/'+st[0].stats.network+'/'+st[0].stats.station+'/HHH.D/'
+        OUTPUT_STREAM = FOLDER_OUTPUT+'MSEED_LFI_SDS/'+st[0].stats.starttime.strftime("%Y")+'/'+st[0].stats.network+'/'+st[0].stats.station+'/HHH.D/'
         os.makedirs(OUTPUT_STREAM,exist_ok=True)
             
         station_name_file = st[0].stats.network+'.'+st[0].stats.station+'..'+st[0].stats.channel+'.D.'+st[0].stats.starttime.strftime("%Y.%j.%H.%M.%S")+'.mseed'
@@ -102,7 +102,7 @@ def rename_files_LFI(row):
         print(row)
 # --------------------------------------------------------------------------------
 
-with Pool(processes=8) as p:
+with Pool(processes=4) as p:
     with tqdm(total=len(dataframe_files_rows)) as pbar:
         for result in p.imap_unordered(rename_files_LFI,dataframe_files_rows):
             pbar.update()
